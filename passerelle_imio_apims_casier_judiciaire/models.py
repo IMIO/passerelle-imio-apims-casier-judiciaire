@@ -9,6 +9,7 @@ import requests
 from requests import RequestException
 import base64
 import json
+import re
 
 def validate_url(value):
     if value.endswith("/"):
@@ -121,6 +122,7 @@ class ApimsCasierJudiciaireConnector(BaseResource):
         except RequestException as e:
             self.logger.warning(f'Casier Judiciaire APIMS Error: {e} {json_response}')
             raise APIError(f'Casier Judiciaire APIMS Error: {e} {json_response}')
+        json_response["items"] = sorted(json_response["items"], key=lambda x: int(re.sub(r"\D", "", re.sub(r"(5A)|(5B)", "05",x["code"]))), reverse=False)
         return json_response
     
     @endpoint(
