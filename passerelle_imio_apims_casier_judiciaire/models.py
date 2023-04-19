@@ -7,6 +7,7 @@ from passerelle.utils.api import endpoint
 from passerelle.utils.jsonresponse import APIError
 import requests
 from requests import RequestException
+import base64
 
 def validate_url(value):
     if value.endswith("/"):
@@ -183,7 +184,8 @@ class ApimsCasierJudiciaireConnector(BaseResource):
 
         pdf_response = None
         try:
-            pdf_response = HttpResponse(response.content, content_type="application/pdf")
+            pdf = base64.b64decode(response.json()["file_content"]) 
+            pdf_response = HttpResponse(pdf, content_type="application/pdf")
         except ValueError:
             self.logger.warning('Casier Judiciaire APIMS Error: bad PDF response')
             raise APIError('Casier Judiciaire APIMS Error: bad PDF response')
@@ -259,7 +261,8 @@ class ApimsCasierJudiciaireConnector(BaseResource):
 
         pdf_response = None
         try:
-            pdf_response = HttpResponse(response.content, content_type="application/pdf")
+            pdf = base64.b64decode(response.json()["file_content"]) 
+            pdf_response = HttpResponse(pdf, content_type="application/pdf")
         except ValueError:
             self.logger.warning('Casier Judiciaire APIMS Error: bad PDF response')
             raise APIError('Casier Judiciaire APIMS Error: bad PDF response')
