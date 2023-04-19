@@ -8,6 +8,7 @@ from passerelle.utils.jsonresponse import APIError
 import requests
 from requests import RequestException
 import base64
+import json
 
 def validate_url(value):
     if value.endswith("/"):
@@ -123,10 +124,10 @@ class ApimsCasierJudiciaireConnector(BaseResource):
         return json_response
     
     @endpoint(
-        name="read-extract",
+        name="check-extract",
         perm="can_access",
         methods=["get"],
-        description="Lire le casier judiciaire d'une personne",
+        description="Vérifier la disponibilité du casier judiciaire",
         parameters={
             "extract_code": {
                 "description": "ID du type d'extrait de casier judiciaire",
@@ -148,8 +149,8 @@ class ApimsCasierJudiciaireConnector(BaseResource):
         display_order=1,
         display_category="Documents"
     )
-    def read_extract(self, request, extract_code, person_nrn, requestor_nrn, language="fr"):
-        """ Get asked document as PDF
+    def check_extract(self, request, extract_code, person_nrn, requestor_nrn, commune_nis=None, language="fr"):
+        """ Get asked disponibility document
         Parameters
         ----------
         extract_code : str
@@ -162,89 +163,14 @@ class ApimsCasierJudiciaireConnector(BaseResource):
             Language of the document
         Returns
         -------
-        PDF document
+        JSON
         """
+        if commune_nis is None:
+            commune_nis = self.municipality_nis_code
 
         url = f"{self.url}/cjcs-extracts/{person_nrn}/{extract_code}"
 
-        self.logger.info("Récupération de l'extrait PDF")
-        try:
-            response = requests.get(
-                url,
-                auth=(self.username, self.password), 
-                headers={
-                    "X-IMIO-REQUESTOR-NRN": requestor_nrn,
-                    "X-IMIO-MUNICIPALITY-NIS": self.municipality_nis_code
-                },
-                params={"language": language}
-            )
-        except Exception as e:
-            self.logger.warning(f'Casier Judiciaire APIMS Error: {e}')
-            raise APIError(f'Casier Judiciaire APIMS Error: {e}')
-
-        pdf_response = None
-        try:
-            pdf = base64.b64decode(response.json()["file_content"]) 
-            pdf_response = HttpResponse(pdf, content_type="application/pdf")
-        except ValueError:
-            self.logger.warning('Casier Judiciaire APIMS Error: bad PDF response')
-            raise APIError('Casier Judiciaire APIMS Error: bad PDF response')
-
-        try:
-            response.raise_for_status()
-        except Exception as e:
-            self.logger.warning(f'Casier Judiciaire APIMS Error: {e}')
-            raise APIError(f'Casier Judiciaire APIMS Error: {e}')
-        return pdf_response
-    
-    @endpoint(
-        name="read-extract-demo",
-        perm="can_access",
-        methods=["get"],
-        description="DEMO - Lire le casier judiciaire d'une personne",
-        parameters={
-            "extract_code": {
-                "description": "ID du type d'extrait de casier judiciaire",
-                "example_value": "595",
-            },
-            "person_nrn": {
-                "description": "Numéro de registre national de la personne qui est concernée par l'extrait de casier judiciaire",
-                "example_value": "15010123487",
-            },
-            "requestor_nrn": {
-                "description": "Numéro de registre national de la personne qui demande l'extrait de casier judiciaire",
-                "example_value": "15010123487",
-            },
-            "language": {
-                "description": "Langage de l'extrait de casier judiciaire",
-                "example_value": "fr",
-            },
-        },
-        display_order=1,
-        display_category="Demo"
-    )
-    def read_extract_demo(self, request, extract_code, person_nrn, requestor_nrn, commune_nis, language="fr"):
-        """ Get asked document as PDF
-        Parameters
-        ----------
-        extract_code : str
-            Extract's code
-        person_nrn : str
-            National number for the extract person
-        requestor_nrn : str
-            National number of the requester
-        commune_nis : str
-            Commune's code nis
-        language : str
-            Language of the document
-        Returns
-        -------
-        PDF document
-        """
-
-        url = f"{self.url}/cjcs-extracts/{person_nrn}/{extract_code}"
-
-        self.logger.info("Récupération de l'extrait PDF")
+        self.logger.info("Récupération du JSON")
         try:
             response = requests.get(
                 url,
@@ -259,18 +185,46 @@ class ApimsCasierJudiciaireConnector(BaseResource):
             self.logger.warning(f'Casier Judiciaire APIMS Error: {e}')
             raise APIError(f'Casier Judiciaire APIMS Error: {e}')
 
+        json_response = None
+        try:
+            json_response = response.json()
+        except ValueError:
+            self.logger.warning('Casier Judiciaire APIMS Error: bad JSON response')
+            raise APIError('Casier Judiciaire APIMS Error: bad JSON response')
+
+        # try:
+        #     response.raise_for_status()
+        # except RequestException as e:
+        #     self.logger.warning(f'Casier Judiciaire APIMS Error: {e} {json_response}')
+        #     raise APIError(f'Casier Judiciaire APIMS Error: {e} {json_response}')
+        return json_response
+    
+    @endpoint(
+        name="read-extract",
+        perm="can_access",
+        methods=["post"],
+        description="Lire le casier judiciaire d'une personne",
+        display_order=1,
+        display_category="Documents"
+    )
+    def read_extract_demo(self, request):
+        """ Get asked document as PDF
+        Returns
+        -------
+        PDF document
+        """
+
+        self.logger.info("Casier Judiciaire decode pdf base64")
+        body = json.loads(request.body)
+        pdf_base64 = body["pdf_base64"]
+
         pdf_response = None
         try:
-            pdf = base64.b64decode(response.json()["file_content"]) 
+            pdf = base64.b64decode(pdf_base64) 
             pdf_response = HttpResponse(pdf, content_type="application/pdf")
         except ValueError:
             self.logger.warning('Casier Judiciaire APIMS Error: bad PDF response')
             raise APIError('Casier Judiciaire APIMS Error: bad PDF response')
 
-        try:
-            response.raise_for_status()
-        except Exception as e:
-            self.logger.warning(f'Casier Judiciaire APIMS Error: {e}')
-            raise APIError(f'Casier Judiciaire APIMS Error: {e}')
         return pdf_response
 
