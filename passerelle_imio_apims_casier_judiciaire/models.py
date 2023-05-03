@@ -153,7 +153,7 @@ class ApimsCasierJudiciaireConnector(BaseResource):
         display_category="Documents"
     )
     def get_extract(self, request, extract_code, person_nrn, requestor_nrn, commune_nis=None, language="fr"):
-        """ Get asked disponibility document
+        """ Get asked json document
         Parameters
         ----------
         extract_code : str
@@ -195,11 +195,10 @@ class ApimsCasierJudiciaireConnector(BaseResource):
             self.logger.warning('Casier Judiciaire APIMS Error: bad JSON response')
             raise APIError('Casier Judiciaire APIMS Error: bad JSON response')
 
-        # try:
-        #     response.raise_for_status()
-        # except RequestException as e:
-        #     self.logger.warning(f'Casier Judiciaire APIMS Error: {e} {json_response}')
-        #     raise APIError(f'Casier Judiciaire APIMS Error: {e} {json_response}')
+        if response.status_code >= 500:
+            self.logger.warning(f'Casier Judiciaire APIMS Error: {e} {json_response}')
+            raise APIError(f'Casier Judiciaire APIMS Error: {e} {json_response}')
+
         return json_response
     
     @endpoint(
@@ -211,7 +210,7 @@ class ApimsCasierJudiciaireConnector(BaseResource):
         display_category="Documents"
     )
     def decode_extract(self, request):
-        """ Get asked document as PDF
+        """ Post decode document as PDF
         Returns
         -------
         PDF document
