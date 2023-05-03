@@ -82,6 +82,7 @@ class ApimsCasierJudiciaireConnector(BaseResource):
     @endpoint(
         name="list-extract-types",
         perm="can_access",
+        methods=["get"],
         description="Types d'extraits de casier judiciaire",
         long_description="Lister les différents types d'extraits de casier judiciaire",
         serializer_type="json-api",
