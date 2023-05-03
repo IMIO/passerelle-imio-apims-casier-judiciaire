@@ -123,14 +123,14 @@ class ApimsCasierJudiciaireConnector(BaseResource):
         except RequestException as e:
             self.logger.warning(f'Casier Judiciaire APIMS Error: {e} {json_response}')
             raise APIError(f'Casier Judiciaire APIMS Error: {e} {json_response}')
-        json_response["items"] = sorted(json_response["items"], key=lambda x: int(re.sub(r"\D", "", re.sub(r"(5A)|(5B)", "05",x["code"]))), reverse=False)
+        json_response["items"] = [type_casier for type_casier in json_response["items"] if type_casier["code"] != "5962"]
         return json_response
     
     @endpoint(
         name="get-extract",
         perm="can_access",
         methods=["get"],
-        description="Vérifier la disponibilité du casier judiciaire",
+        description="Obtenir le casier judiciaire",
         parameters={
             "extract_code": {
                 "description": "ID du type d'extrait de casier judiciaire",
@@ -206,7 +206,7 @@ class ApimsCasierJudiciaireConnector(BaseResource):
         name="decode-extract",
         perm="can_access",
         methods=["post"],
-        description="Lire le casier judiciaire d'une personne",
+        description="Décoder le casier judiciaire d'une personne",
         display_order=1,
         display_category="Documents"
     )
