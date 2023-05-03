@@ -94,7 +94,7 @@ class ApimsCasierJudiciaireConnector(BaseResource):
         },
         display_category="Types",
     )
-    def list_person_documents(self, request, language="fr"):
+    def list_extract_types(self, request, language="fr"):
         """ Gets types of extracts
         Returns
         -------
@@ -126,7 +126,7 @@ class ApimsCasierJudiciaireConnector(BaseResource):
         return json_response
     
     @endpoint(
-        name="check-extract",
+        name="get-extract",
         perm="can_access",
         methods=["get"],
         description="Vérifier la disponibilité du casier judiciaire",
@@ -151,7 +151,7 @@ class ApimsCasierJudiciaireConnector(BaseResource):
         display_order=1,
         display_category="Documents"
     )
-    def check_extract(self, request, extract_code, person_nrn, requestor_nrn, commune_nis=None, language="fr"):
+    def get_extract(self, request, extract_code, person_nrn, requestor_nrn, commune_nis=None, language="fr"):
         """ Get asked disponibility document
         Parameters
         ----------
@@ -202,14 +202,14 @@ class ApimsCasierJudiciaireConnector(BaseResource):
         return json_response
     
     @endpoint(
-        name="read-extract",
+        name="decode-extract",
         perm="can_access",
         methods=["post"],
         description="Lire le casier judiciaire d'une personne",
         display_order=1,
         display_category="Documents"
     )
-    def read_extract_demo(self, request):
+    def decode_extract(self, request):
         """ Get asked document as PDF
         Returns
         -------
