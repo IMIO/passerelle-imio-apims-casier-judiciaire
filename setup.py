@@ -16,7 +16,7 @@ setup(
     ],
     url="https://github.com/IMIO/passerelle-imio-apims-casier-judiciare",
     install_requires=[
-        "django>=2.2",
+        "django>=3.2, <3.3",
     ],
     zip_safe=False,
 )
