@@ -1,15 +1,17 @@
-from django.db import models
-from django.http import HttpResponse
-from django.urls import reverse
-from django.core.exceptions import ValidationError
-from passerelle.base.models import BaseResource
-from passerelle.utils.api import endpoint
-from passerelle.utils.jsonresponse import APIError
-import requests
-from requests import RequestException
 import base64
 import json
 import re
+
+import requests
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.http import HttpResponse
+from django.urls import reverse
+from passerelle.base.models import BaseResource
+from passerelle.utils.api import endpoint
+from passerelle.utils.jsonresponse import APIError
+from requests import RequestException
+
 
 def validate_url(value):
     if value.endswith("/"):
@@ -30,7 +32,7 @@ class ApimsCasierJudiciaireConnector(BaseResource):
     password : str
         password used to connect to APIMS
     municipality_nis_code : str
-        token used to identify municipality to APIMS 
+        token used to identify municipality to APIMS
     Methods
     -------
     """
@@ -60,14 +62,14 @@ class ApimsCasierJudiciaireConnector(BaseResource):
         help_text="Code NIS d'identification de l'organisme dans APIMS Casier Judiciaire",
         verbose_name="Code NIS de l'organisme",
     )
-    
+
     category = 'Connecteurs iMio'
 
     api_description = "Connecteur permettant d'intéragir avec APIMS Casier Judiciaire"
 
     class Meta:
         verbose_name = 'Connecteur APIMS Casier Judiciaire'
-    
+
     @property
     def session(self):
         session = requests.Session()
@@ -125,7 +127,7 @@ class ApimsCasierJudiciaireConnector(BaseResource):
             raise APIError(f'Casier Judiciaire APIMS Error: {e} {json_response}')
         json_response["items"] = [type_casier for type_casier in json_response["items"] if type_casier["code"] != "5962"]
         return json_response
-    
+
     @endpoint(
         name="get-extract",
         perm="can_access",
@@ -177,7 +179,7 @@ class ApimsCasierJudiciaireConnector(BaseResource):
         try:
             response = requests.get(
                 url,
-                auth=(self.username, self.password), 
+                auth=(self.username, self.password),
                 headers={
                     "X-IMIO-REQUESTOR-NRN": requestor_nrn,
                     "X-IMIO-MUNICIPALITY-NIS": commune_nis
@@ -200,7 +202,7 @@ class ApimsCasierJudiciaireConnector(BaseResource):
             raise APIError(f'Casier Judiciaire APIMS Error: {e} {json_response}')
 
         return json_response
-    
+
     @endpoint(
         name="decode-extract",
         perm="can_access",
@@ -222,7 +224,7 @@ class ApimsCasierJudiciaireConnector(BaseResource):
 
         pdf_response = None
         try:
-            pdf = base64.b64decode(pdf_base64) 
+            pdf = base64.b64decode(pdf_base64)
             pdf_response = HttpResponse(pdf, content_type="application/pdf")
         except ValueError:
             self.logger.warning('Casier Judiciaire APIMS Error: bad PDF response')
