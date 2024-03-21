@@ -245,11 +245,7 @@ class ApimsCasierJudiciaireConnector(BaseResource):
             "requestor_nrn": {
                 "description": "Numéro de registre national de la personne qui demande l'extrait de casier judiciaire",
                 "example_value": "15010123487",
-            },
-            "language": {
-                "description": "Langage de l'extrait de casier judiciaire",
-                "example_value": "fr",
-            },
+            }
         },
         display_order=1,
         display_category="Documents"
