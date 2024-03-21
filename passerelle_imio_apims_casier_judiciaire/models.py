@@ -232,3 +232,71 @@ class ApimsCasierJudiciaireConnector(BaseResource):
 
         return pdf_response
 
+    @endpoint(
+        name="get-delayed-extract",
+        perm="can_access",
+        methods=["get"],
+        description="Obtenir le casier judiciaire après traitement",
+        parameters={
+            "unique_id": {
+                "description": "ID renvoyé par le BOSA dans la demande initiale",
+                "example_value": "20240304-58",
+            },
+            "requestor_nrn": {
+                "description": "Numéro de registre national de la personne qui demande l'extrait de casier judiciaire",
+                "example_value": "15010123487",
+            },
+            "language": {
+                "description": "Langage de l'extrait de casier judiciaire",
+                "example_value": "fr",
+            },
+        },
+        display_order=1,
+        display_category="Documents"
+    )
+    def get_delayed_extract(self, request, unique_id, requestor_nrn, commune_nis=None, language="fr"):
+        """ Get asked json document
+        Parameters
+        ----------
+        unique_id : str
+            unique's code
+        requestor_nrn : str
+            National number of the requester
+        language : str
+            Language of the document
+        Returns
+        -------
+        JSON
+        """
+        if commune_nis is None:
+            commune_nis = self.municipality_nis_code
+
+        url = f"{self.url}/cjcs-delayed-extracts/{unique_id}"
+
+        self.logger.info("Récupération du JSON")
+        try:
+            response = requests.get(
+                url,
+                auth=(self.username, self.password),
+                headers={
+                    "X-IMIO-REQUESTOR-NRN": requestor_nrn,
+                    "X-IMIO-MUNICIPALITY-NIS": commune_nis
+                },
+                params={"language": language}
+            )
+        except Exception as e:
+            self.logger.warning(f'Casier Judiciaire APIMS Error: {e}')
+            raise APIError(f'Casier Judiciaire APIMS Error: {e}')
+
+        json_response = None
+        try:
+            json_response = response.json()
+        except ValueError:
+            self.logger.warning('Casier Judiciaire APIMS Error: bad JSON response')
+            raise APIError('Casier Judiciaire APIMS Error: bad JSON response')
+
+        if response.status_code >= 500:
+            self.logger.warning(f'Casier Judiciaire APIMS Error: {e} {json_response}')
+            raise APIError(f'Casier Judiciaire APIMS Error: {e} {json_response}')
+
+        return json_response
