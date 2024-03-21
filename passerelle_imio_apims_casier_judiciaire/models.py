@@ -254,7 +254,7 @@ class ApimsCasierJudiciaireConnector(BaseResource):
         display_order=1,
         display_category="Documents"
     )
-    def get_delayed_extract(self, request, unique_id, requestor_nrn, commune_nis=None, language="fr"):
+    def get_delayed_extract(self, request, unique_id, requestor_nrn, commune_nis=None):
         """ Get asked json document
         Parameters
         ----------
@@ -282,7 +282,6 @@ class ApimsCasierJudiciaireConnector(BaseResource):
                     "X-IMIO-REQUESTOR-NRN": requestor_nrn,
                     "X-IMIO-MUNICIPALITY-NIS": commune_nis
                 },
-                params={"language": language}
             )
         except Exception as e:
             self.logger.warning(f'Casier Judiciaire APIMS Error: {e}')
