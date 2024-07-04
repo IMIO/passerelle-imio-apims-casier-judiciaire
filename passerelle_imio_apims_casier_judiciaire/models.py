@@ -20,6 +20,7 @@ def validate_url(value):
             params={'value': value},
         )
 
+
 class ApimsCasierJudiciaireConnector(BaseResource):
     """
     Connecteur APIMS Casier Judiciaire
@@ -80,7 +81,6 @@ class ApimsCasierJudiciaireConnector(BaseResource):
         })
         return session
 
-
     @endpoint(
         name="list-extract-types",
         perm="can_access",
@@ -94,10 +94,15 @@ class ApimsCasierJudiciaireConnector(BaseResource):
                 "description": "Langage voulu",
                 "example_value": "fr",
             },
+            "modele_2": {
+                "description": "Autoriser le modele 2",
+                "type": "bool",
+                "example_value": False,
+            },
         },
         display_category="Types",
     )
-    def list_extract_types(self, request, language="fr"):
+    def list_extract_types(self, request, language="fr", modele_2=False):
         """ Gets types of extracts
         Returns
         -------
@@ -125,7 +130,11 @@ class ApimsCasierJudiciaireConnector(BaseResource):
         except RequestException as e:
             self.logger.warning(f'Casier Judiciaire APIMS Error: {e} {json_response}')
             raise APIError(f'Casier Judiciaire APIMS Error: {e} {json_response}')
-        json_response["items"] = [type_casier for type_casier in json_response["items"] if type_casier["code"] != "5962"]
+
+        if not modele_2:
+            json_response["items"] = [type_casier for type_casier in json_response["items"] if
+                                      type_casier["code"] != "5962"]
+
         return json_response
 
     @endpoint(
